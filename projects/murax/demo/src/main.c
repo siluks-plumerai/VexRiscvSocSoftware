@@ -2,6 +2,14 @@
 
 #include <murax.h>
 
+static inline uint32_t read_uint32_t(uint32_t address){
+    return *((volatile uint32_t*) address);
+}
+
+static inline void write_uint32_t(uint32_t data, uint32_t address){
+    *((volatile uint32_t*) address) = data;
+}
+
 
 void main() {
 	volatile uint32_t a = 1, b = 2, c = 3;
@@ -23,7 +31,11 @@ void main() {
 	GPIO_A->OUTPUT = 0x00000000;
 
 	UART->STATUS = 2; //Enable RX interrupts
-	UART->DATA = 'A';
+	uint32_t data = read_uint32_t(0xF0000000+0x40000);
+	UART->DATA = (data >> 24) & 0xFF;
+	UART->DATA = (data >> 16) & 0xFF;
+	UART->DATA = (data >> 8 ) & 0xFF;
+	UART->DATA = (data >> 0 ) & 0xFF;
 
 	while(1){
 		result += a;
@@ -42,6 +54,3 @@ void irqCallback(){
 		UART->DATA = (UART->DATA) & 0xFF;
 	}
 }
-
-
-
